@@ -1,4 +1,4 @@
-function program = mainProgram()
+function mainProgram()
 clear all;
 clc;
 

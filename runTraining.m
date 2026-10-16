@@ -1,5 +1,4 @@
 function rstx = runTraining(p_name , params)
-warning('off','all');
 
 %% Create CROSS VALIDATION FOLDS
 numOfFolds = params.numOfFolds;
@@ -14,7 +13,7 @@ avgAccuracy_without_BCS = [];
 sizeBeforeBCS = [];
 sizeAfterBCS = [];
 K = [];
-rstx = {};
+rstx = struct();
 
 %% ITERATE OVER THE NUMBER OF FOLDS
 for fold=1:numOfFolds
@@ -71,11 +70,8 @@ for fold=1:numOfFolds
             % TRY WITH 10/25/58/75 test samples
             all = trainClassifiers(trainCluster, params);
             for temp = 1:length(all)
-                all = trainClassifiers(trainCluster, params);
-                for temp = 1:length(all)
-                    classifiers{classifierIndex} = all{1,temp};
-                    classifierIndex = classifierIndex + 1;
-                end
+                classifiers{classifierIndex} = all{1,temp};
+                classifierIndex = classifierIndex + 1;
             end
             
         end
