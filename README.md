@@ -40,8 +40,19 @@ The seed is a starting point for recording runs; nested seed resets, parallel wo
 
 ## Review notes and reproducibility limits
 
-Duplicate nested retraining was removed and normalisation of constant/zero-mean features was corrected; new results may differ. The optional NCA path uses the held-out test set to choose a threshold; keep `params.NCA = false` until selection is moved to training/validation data. The legacy local `normalize.m` shadows MATLAB’s built-in function. Review degenerate diversity formulas and random-selection termination before large runs. `Main.m` requires adapting its calls to the modified `BPSO`/`MyCost` signatures; `clusteringPSO.m` references an unprovided `fusionPSO`.
+Prediction, training-label mapping and random-selection retry handling match the corrections described in `docs/code-review.md`. Strict-accuracy selection remains the active policy; ties do not introduce a new diversity policy. Empty PSO masks have a deterministic fallback and its scoring/return threshold is consistent. The legacy NCA path used held-out test loss to choose a threshold; it is now disabled with a clear error. Keep `params.NCA = false` until a training/validation-only replacement is implemented. Local `normalize.m` still shadows MATLAB's built-in name. Third-party optimizer examples and degenerate diversity formulas remain experimental.
 
-The cleanup aligns function/file names, restores visible warnings, makes CSV handles close on errors, and tests constant-feature normalisation plus CSV append behaviour. MATLAB experiments and the new utility tests have **not** been executed in the cleanup environment, which has no MATLAB installation. Static parsing is not a reproduction of the paper.
+## Correctness review — October 2026
+
+This pass fixes implementation defects; it does not validate the associated research results. Changes can alter model pools, predictions and measured scores. Re-run the experiments before comparing corrected code with historical CSVs or published results.
+
+- Label conversion uses numeric category names, not categorical indices.
+- Voting rejects empty/nonfinite inputs; a prediction failure is reported rather than counted as a fabricated class-one vote.
+- Neural models store their training labels in `net.userdata.classLabels`. Retrain old models or restore that exact training vocabulary before prediction; inferring it from a validation subset is unsafe.
+- Synthetic checks cover normalization, CSV append behavior and the new prediction/selection boundaries. Additional cluster checks run where applicable.
+
+See [the code review](docs/code-review.md) for repository-specific changes, tests and remaining limitations.
+
+**Validation:** all MATLAB sources were statically parsed/linted with MISS_HIT. MATLAB and its learner toolboxes are unavailable in the review environment. The MATLAB regression suites and full training runs have **not been executed** here. Run `runtests('tests')` and `assertSuccess(results)` in MATLAB before using the corrected experiments.
 
 [Profile and project directory](https://github.com/zohaibjan)

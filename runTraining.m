@@ -22,17 +22,11 @@ for fold=1:numOfFolds
     trainData = data(cvFolds.training(fold),:);
     testData = data(cvFolds.test(fold),:);
     
-    %% DIMENSIONALITY REDUCTION WITH FEATURE SELECTION NCA-NEIGHBOURHOOD COMPONENT ANALYSIS
-    if params.NCA == true
-        nca = fscnca(trainData(:,1:end-1),trainData(:,end),'FitMethod','exact','Lambda',0,...
-            'Solver','sgd','Standardize',true);
-        L = loss(nca,testData(:,1:end-1),testData(:,end));
-        tol= L;
-        selidx = find(nca.FeatureWeights > tol*max(1,max(nca.FeatureWeights)));
-        trainData = [trainData(:,selidx'), trainData(:, end)];
-        testData = [testData(:,selidx'), testData(:, end)];
+    if params.NCA
+        error('Research:UnsafeLegacyNCA', ...
+            'Legacy NCA used held-out test loss. Use NCA=false until training-only selection is implemented.');
     end
-   
+
     %% SEPARATE VALIDATION DATA PER FOLD
     cv_vali_folds = cvpartition(trainData(:,end), 'holdout', 0.1);
     validationDataIndex = test(cv_vali_folds);
@@ -43,13 +37,13 @@ for fold=1:numOfFolds
     %% HOW MANY CLUSTERS UPPER BOUND - K
     noOfClusters = round(nthroot(size(trainData,1),params.noOfClusters));
     
-    allClusters = zeros(length(trainData),1);
+    allClusters = zeros(size(trainData, 1),1);
     totalClusters = 1;
     %% GENERATE ALL CLUSTERS - from k = 1, 2, ..., K
     for clusters=1:noOfClusters
         %% CLUSTERINGS
         % STANDARDIZE DATA BEFORE CLUSTERING
-        if length(trainData) > clusters
+        if size(trainData, 1) > clusters
             clusterIds = kmeans(normalize(trainData(:,1:end-1),2), clusters, 'MaxIter', 2400);                                                                          % 'MaxIter',500, 'Replicates',5,  'dist','sqeuclidean'
             for j=1:clusters
                 allClusters(:,totalClusters) = (clusterIds == j); % indexes of clusters
