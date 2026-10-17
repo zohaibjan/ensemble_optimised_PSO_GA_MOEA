@@ -34,13 +34,17 @@ The seed is a starting point for recording runs; nested seed resets, parallel wo
 
 ## Workflow and output
 
-`mainProgram.m` drives ten-fold experiments; `runTraining.m` builds a candidate pool, selects via `rBCS.m` and compares selected versus full-pool accuracy. The separate GA/PSO files are experimental helpers, not a verified unified optimiser API.
+`mainProgram.m` drives ten-fold experiments; `runTraining.m` builds a candidate pool, selects via `rBCS.m` and compares selected versus full-pool accuracy. The separate GA/PSO files now have bounded synthetic runtime tests; they remain research helpers rather than a unified optimiser API.
 
 `saveResults.m` appends rows to `results.csv` in the current folder and writes the header only when creating the file. Driver-level CSV writes are sequential to avoid concurrent append races. Archive old output before a new configuration; rows do not contain a complete environment/configuration record. Committed CSV files are historical outputs, not freshly validated benchmarks.
 
 ## Review notes and reproducibility limits
 
 Prediction, training-label mapping and random-selection retry handling match the corrections described in `docs/code-review.md`. Strict-accuracy selection remains the active policy; ties do not introduce a new diversity policy. Empty PSO masks have a deterministic fallback and its scoring/return threshold is consistent. The legacy NCA path used held-out test loss to choose a threshold; it is now disabled with a clear error. Keep `params.NCA = false` until a training/validation-only replacement is implemented. Local `normalize.m` still shadows MATLAB's built-in name. Third-party optimizer examples and degenerate diversity formulas remain experimental.
+
+## Runtime follow-up — October 2026
+
+GA uses the same >0.5 nonempty mask during scoring and return. Multi-objective GA now measures pairwise double fault on selected models, returns one score-aligned ensemble, and exposes the full Pareto masks/scores separately. BPSO uses a vector for personal-best scores. Feature PSO uses current solver option names, a nonempty feature mask, reproducible learner initialization and validation-only scoring. Original third-party author notices remain.
 
 ## Correctness review — October 2026
 
@@ -53,6 +57,6 @@ This pass fixes implementation defects; it does not validate the associated rese
 
 See [the code review](docs/code-review.md) for repository-specific changes, tests and remaining limitations.
 
-**Validation:** all MATLAB sources were statically parsed/linted with MISS_HIT. MATLAB and its learner toolboxes are unavailable in the review environment. The MATLAB regression suites and full training runs have **not been executed** here. Run `runtests('tests')` and `assertSuccess(results)` in MATLAB before using the corrected experiments.
+**Validation:** 27 regression/smoke tests passed in MATLAB R2024b on Linux through [GitHub Actions](https://github.com/zohaibjan/ensemble_optimised_PSO_GA_MOEA/actions/workflows/matlab-tests.yml). Tests include real toolbox execution on synthetic data. Full research datasets and published accuracy results have not been reproduced. See [validation evidence and limits](docs/validation.md).
 
 [Profile and project directory](https://github.com/zohaibjan)
